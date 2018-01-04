@@ -55,7 +55,7 @@ def dbg_draw_txt_contours(img, mser):
     
 def dbg_draw_txt_rect(img, bbox_list):
     img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR, dstCn=3)
-    processed_imgname="/home/lili/Workspace/MSER_images/MSER2/MSER_refinement.png"
+    processed_imgname="/home/hinh/Image processing/MSER/MSER_refinement.png"
     #scratch_image_name = 'nutro.tmp.bmp'
     for b in bbox_list:
         pt1 = tuple(map(int, b[0]))
@@ -298,8 +298,8 @@ def dbg_get_cluster_rect(cluster_vld, region_dict):
     for cl_no, vld in enumerate(cluster_vld):
         if vld==True:
             vld_count+=1
-        print "vld"
-        print vld
+        print ("vld")
+        print (vld)
         if vld:
             cur_lL = [100000, 10000]
             cur_uR = [-100000, -100000]
@@ -317,10 +317,10 @@ def dbg_get_cluster_rect(cluster_vld, region_dict):
                     if region_uR[1] >= cur_uR[1]:
                         cur_uR[1] = region_uR[1]
             bbox_list.append([cur_lL, cur_uR])
-    print "len(bbox_list) in get_text_from_cluster"
-    print len(bbox_list)
-    print "vld_count"
-    print vld_count
+    print ("len(bbox_list) in get_text_from_cluster")
+    print (len(bbox_list))
+    print ("vld_count")
+    print (vld_count)
     return bbox_list
             
 def get_bbox_img(gimg, bb):
@@ -338,22 +338,21 @@ def get_bbox_img(gimg, bb):
 
 def get_text_from_cluster(cluster_vld, region_dict, gimg):
     bbox_list = dbg_get_cluster_rect(cluster_vld, region_dict)
-    str_list = []
+    str_list = ""
     for bb in bbox_list:
         extracted = get_bbox_img(gimg, bb)
         ext_img = smp.toimage(extracted)
-        found = image_to_string(ext_img, cleanup=False)
-        str_list.append(found.strip())
-    str_list.insert(0, str_list)
-    
-    pprint.pprint(str_list)
+        found = image_to_string(ext_img)
+        str_list = str_list + found.strip() + "\r\n"
+    print ("results :___________________________________")
+    print ("%s" % str_list)
 
     
 def run(fimage):
     processed_imgname='/home/lili/Workspace/MSER_images/MSER2/MSER_refinement.png'
     ar_thresh_max = 6.0
     ar_thresh_min = 0.5
-    sw_ratio_thresh = 1
+    sw_ratio_thresh = 0.8
     min_area_ratio = 500.0
     width_threshold = 5.0
     
@@ -365,7 +364,7 @@ def run(fimage):
     region_dict = {}
     rows, cols = gray_img.shape
     print("the shape of gray image is ")
-    print rows, cols
+    print (rows, cols)
     
     bbox_list = []
     region_num = 0
@@ -377,10 +376,10 @@ def run(fimage):
        # print bb
         ar = bbox_width(bb)/bbox_height(bb)
         area_ratio=bbox_width(bb)*bbox_height(bb)
-        print "area_ratio"
-        print area_ratio
+        print ("area_ratio")
+        print (area_ratio)
         print("ar is")
-        print ar
+        print (ar)
         #Filter based on AspectRatio
         if ar < ar_thresh_max and area_ratio>min_area_ratio and ar > ar_thresh_min and bbox_width(bb)>width_threshold:
             sw = get_swt_frm_mser(m, rows, cols, gray_img)
@@ -391,41 +390,45 @@ def run(fimage):
           #  print "sw_ratio"
            # print sw_ratio
             if sw_ratio < sw_ratio_thresh:
-                print "sw_ratio"
-                print sw_ratio
+                print ("sw_ratio")
+                print (sw_ratio)
                 sw_med = np.median(sw)
                 region_dict[name] = {'bbox':bb, 'sw_med':sw_med};
                 region_num = region_num +1
     
-    print "region_num"
-    print region_num
+    print ("region_num")
+    print (region_num)
      
-    print "rows number"
-    print rows
-    print "char_height"
-    print char_height
+    print ("rows number")
+    print (rows)
+    print ("char_height")
+    print (char_height)
     num_clusters = int(rows/char_height)
     cluster_vld  = kmean(region_dict, rows, num_clusters)
-    print "len(cluster_vld)"
-    print len(cluster_vld)
-    bbox_list    = dbg_get_cluster_rect(cluster_vld, region_dict)
-    print "len(bbox_list) after clustering"
-    print len(bbox_list)
+    print ("len(cluster_vld)")
+    print (len(cluster_vld))
+    bbox_list = dbg_get_cluster_rect(cluster_vld, region_dict)
+    print ("len(bbox_list) after clustering")
+    print (len(bbox_list))
     for bb in bbox_list:
-        print bb
+        print (bb)
     
     #get_text_from_cluster(cluster_vld, region_dict, gray_img)
-    print "len(region_dict)"
-    print len(region_dict)
-    print "gray_img.shape"
-    print gray_img.shape
+    print ("len(region_dict)")
+    print (len(region_dict))
+    print ("gray_img.shape")
+    print (gray_img.shape)
     cpy_img = np.copy(gray_img)
     dbg_draw_txt_rect(cpy_img, bbox_list)
+    get_text_from_cluster(cluster_vld, region_dict, org_img)
     
   
 
     
 if __name__ == '__main__':
-    img_name = "/home/lili/Workspace/FCN_Text/ProposalGeneration/tmp_practice/ee3bdfa09bedf98f836e337585736977-1.png"
+    img_name = "/home/hinh/Image processing/MSER/3.jpg"
     #img_name = "/home/lili/Workspace/MSER_images/MSER2/good_ex.png"
     run(img_name)
+	
+    
+
